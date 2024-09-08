@@ -8,7 +8,7 @@ from concurrent.futures import ThreadPoolExecutor
 # 配置日志记录
 logging.basicConfig(
     filename='autosave.log',  # 指定日志文件名
-    filemode='a',  # 文件模式：'a' 表示追加模式，'w' 表示覆盖模式
+    filemode='w',  # 文件模式：'a' 表示追加模式，'w' 表示覆盖模式
     level=logging.INFO,
     format='%(asctime)s - %(levelname)s - %(message)s'  # 日志格式
 )
@@ -37,7 +37,10 @@ def ssh_connect(host, username, password):
 def telnet_connect(host, username, password):
     try:
         tn = telnetlib.Telnet(host)
-        tn.read_until(b"Login:", timeout=10)
+        # 读取提示信息，检查是否包含 "Username:" 或 "Login:"
+        login_prompt = tn.read_until(b"Username:", timeout=10)
+        if b"Username:" not in login_prompt:
+            login_prompt = tn.read_until(b"Login:", timeout=10)
         tn.write(username.encode('ascii') + b"\n")
         tn.read_until(b"Password:", timeout=10)
         tn.write(password.encode('ascii') + b"\n")
